@@ -24,7 +24,11 @@ jobs:
       - name: Upload assets
         uses: actions/upload-artifact@v3
         with:
-          name: substratus
-          path: dist/*
+          name: kubectl-plugin
+          path: |
+            dist/*
+            !dist/artifacts.json
+            !dist/metadata.yaml
+            !dist/config.yaml
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
