@@ -1,44 +1,34 @@
-project_name: kubectl-open-notebook
-before:
-  hooks:
-    - go mod tidy
-    - go generate ./...
-builds:
-  - main: ./kubectl/open-notebook/
+name: goreleaser
+on:
+  push:
+    tags:
+      - "*"
+permissions:
+  contents: write
+jobs:
+  goreleaser:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Set up Go
+        uses: actions/setup-go@v4
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v4
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --clean
+      - name: Upload assets
+        uses: actions/upload-artifact@v3
+        with:
+          name: kubectl-plugin
+          path: |
+            dist/*
+            !dist/artifacts.json
+            !dist/metadata.yaml
+            !dist/config.yaml
     env:
-      - CGO_ENABLED=0
-    goos:
-      - linux
-      - windows
-      - darwin
-    goarch:
-      - amd64
-      - arm64
-      - arm
-      - ppc64le
-archives:
-  - id: archive
-    format: tar.gz
-    name_template: >-
-      {{ .ProjectName }}_
-      {{- title .Os }}_
-      {{- if eq .Arch "amd64" }}x86_64
-      {{- else if eq .Arch "386" }}i386
-      {{- else }}{{ .Arch }}{{ end }}
-      {{- if .Arm }}v{{ .Arm }}{{ end }}
-    # use zip for windows archives
-    format_overrides:
-      - goos: windows
-        format: zip
-checksum:
-  name_template: "checksums.txt"
-snapshot:
-  name_template: "{{ incpatch .Version }}-next"
-changelog:
-  sort: asc
-  filters:
-    exclude:
-      - "^docs:"
-      - "^test:"
-# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
-# vim: set ts=2 sw=2 tw=0 fo=cnqoj
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
